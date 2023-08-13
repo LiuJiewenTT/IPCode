@@ -2,19 +2,25 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import PlainTextResponse, HTMLResponse, RedirectResponse
 
+from IPCode_Client.utils.network_toolkit1 import AdapterAndIP_Used
+
 app = FastAPI()
 
 
 @app.get('/get_UsedIPv6', response_class=PlainTextResponse)
 def get_UsedIPv6():
-    return '::1'
+    usedIP_str = '::1'
+    adapter = AdapterAndIP_Used()
+    usedIP = adapter.getUsedIP_v6()
+    usedIP_str = usedIP.ip[0]
+    return usedIP_str
 
 
 @app.get('/static/', response_class=HTMLResponse)
 def entrance_index():
-    with open('res/main_page.html', mode='r') as f:
+    with open('res/main_page.html', mode='r', encoding='utf-8') as f:
         s = f.read()
-    s = s.format(blank_ipv6_address='::1')
+    s = s.format(blank_ipv6_address=get_UsedIPv6())
     return HTMLResponse(content=s)
 
 
