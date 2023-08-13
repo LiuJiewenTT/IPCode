@@ -1,0 +1,2 @@
+主要有这种技术路线可以选择：basehttpserver, tornado, flask, fastapi
+暂定使用fastapi
