@@ -1,3 +1,5 @@
 .idea
 keep_local/
 __pycache__/
+/build/
+/dist/
