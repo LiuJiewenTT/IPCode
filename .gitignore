@@ -3,3 +3,5 @@ keep_local/
 __pycache__/
 /build/
 /dist/
+/venv*/
+src/IPCode_Client/IntegratedWebServer/temp.py
