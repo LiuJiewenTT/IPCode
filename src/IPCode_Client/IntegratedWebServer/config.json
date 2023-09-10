@@ -6,6 +6,6 @@
   "ifconfig": {
     "url": "6.ipw.cn",
     "options": [],
-    "cache_validtime": "infinite"
+    "cache_validtime": "5"
   }
 }

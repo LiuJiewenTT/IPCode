@@ -18,6 +18,17 @@ def get_UsedIPv6():
     return usedIP_str
 
 
+@app.get('/get_UsedIPv6Prefix', response_class=PlainTextResponse)
+def get_UsedIPv6():
+    global adapter
+    usedIP_str = '::1'
+    # usedPrefix = adapter.getUsedPrefixFromAdapterWithIP()
+    # usedPrefix = adapter.cache.usedPrefix
+    usedPrefix = adapter.getUsedPrefix()
+    usedPrefix_str = str(usedPrefix)
+    return usedPrefix_str
+
+
 @app.get('/static/', response_class=HTMLResponse)
 def entrance_index():
     with open('res/main_page.html', mode='r', encoding='utf-8') as f:
@@ -65,6 +76,7 @@ def test_main():
             ifconfig_cache_validtime: str = config_ifconfig.get('cache_validtime')
             if ifconfig_url is not None: adapter.ifconfig_url = ifconfig_url
             if ifconfig_options is not None: adapter.ifconfig_options = ifconfig_options
+            if ifconfig_cache_validtime is not None: adapter.cache.validtime = ifconfig_cache_validtime
 
     # uvicorn.run(app, host='127.0.0.1', port=8000)
     # uvicorn.run(app, host='0.0.0.0', port=8000)
@@ -76,4 +88,5 @@ def test_main():
 
 if __name__ == "__main__":
     adapter = AdapterAndIP_Used()
+    adapter.cache_enabled = True
     test_main()
