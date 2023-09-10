@@ -5,3 +5,4 @@ __pycache__/
 /dist/
 /venv*/
 src/IPCode_Client/IntegratedWebServer/temp.py
+*.spec
