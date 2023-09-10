@@ -1,7 +1,8 @@
 import ifaddr
 import subprocess
 import ipaddress
-from typing import Dict, Union
+from IPCode_Client.utils.cache_toolkit1 import timelimtited_cache
+from typing import Dict, Union, List, Callable
 
 
 class NetworkTools:
@@ -49,13 +50,78 @@ class NetworkTools:
 
 
 class AdapterAndIP_Used(NetworkTools):
-    usedNetworkAdapter: ifaddr.Adapter
-    usedIP: ifaddr.IP
-    usedPrefix: ipaddress.IPv6Address
+
+    class cache_class(timelimtited_cache):
+        auto_refresh: bool = True
+        _usedNetworkAdapter: ifaddr.Adapter
+        _usedIP: ifaddr.IP
+        _usedPrefix: ipaddress.IPv6Address
+
+        # Refresh Callbacks
+        _usedNetworkAdapter_refresh_callback: Callable[[], ifaddr.Adapter]
+        _usedIP_refresh_callback: Callable[[], ifaddr.IP]
+        _usedPrefix_refresh_callback: Callable[[], ipaddress.IPv6Address]
+
+        @property
+        def usedNetworkAdapter(self) -> Union[ifaddr.Adapter, None]:
+            if self.valid is True:
+                return self._usedNetworkAdapter
+            elif self.auto_refresh is True:
+                self._usedNetworkAdapter = self._usedNetworkAdapter_refresh_callback.__call__()
+                return self._usedNetworkAdapter
+            return None
+
+        @usedNetworkAdapter.setter
+        def usedNetworkAdapter(self, data):
+            self._usedNetworkAdapter = data
+
+        @property
+        def usedIP(self):
+            if self.valid is True:
+                return self._usedIP
+            elif self.auto_refresh is True:
+                self._usedIP = self._usedIP_refresh_callback.__call__()
+                return self._usedIP
+            return None
+
+        @usedIP.setter
+        def usedIP(self, data):
+            self._usedIP = data
+
+        @property
+        def usedPrefix(self):
+            if self.valid is True:
+                return self._usedPrefix
+            elif self.auto_refresh is True:
+                self._usedPrefix = self._usedPrefix_refresh_callback.__call__()
+                return self._usedPrefix
+            return None
+
+        @usedPrefix.setter
+        def usedPrefix(self, data):
+            self._usedPrefix = data
+
+    cache_enabled: bool = False
+    cache: cache_class = cache_class()
+
+    # config section
+    ifconfig_url: str = 'ifconfig.co'
+    ifconfig_options: Union[str, List[str], None] = None
 
     def getUsedNetworkAdapterRaw(self, opt='') -> Dict[str, Union[None, ifaddr.Adapter, ifaddr.IP]]:
+        if self.cache_enabled is True:
+            return {'adapter': self.cache.usedNetworkAdapter, 'ip': self.cache.usedIP}
+
+        if self.ifconfig_options is str:
+            opt += f' {self.ifconfig_options}'
+        elif self.ifconfig_options is List[str]:
+            for i in self.ifconfig_options:
+                opt += f' {i}'
+
         adapters = ifaddr.get_adapters()
-        p = subprocess.Popen(f'curl --silent {opt} ifconfig.co', text=True, stdout=subprocess.PIPE)
+        curl_command_str = f'curl --silent {opt} {self.ifconfig_url}'
+        print(f'[Debug]: curl_command_str: {curl_command_str}')
+        p = subprocess.Popen(curl_command_str, text=True, stdout=subprocess.PIPE)
         ip_used = p.stdout.readline()
         ip_used = ip_used.strip(' \r\n')
         print(f'[Debug]: IP: "{ip_used}".')
@@ -66,8 +132,8 @@ class AdapterAndIP_Used(NetworkTools):
                     usedNetworkAdapter = adapter
                     usedIP = ip
                     break
-        self.usedNetworkAdapter = usedNetworkAdapter
-        self.usedIP = usedIP
+        self.cache.usedNetworkAdapter = usedNetworkAdapter
+        self.cache.usedIP = usedIP
         return {'adapter': usedNetworkAdapter, 'ip': usedIP}
 
     def getUsedNetworkAdapterRaw_v6(self):
@@ -89,8 +155,11 @@ class AdapterAndIP_Used(NetworkTools):
         return self.getUsedNetworkAdapterRaw_v4()['ip']
 
     def getUsedPrefixFromAdapterWithIP(self):
-        self.usedPrefix = self.getPrefixFromAdapterWithIP(self.usedNetworkAdapter, self.usedIP)
-        return self.usedPrefix
+        if self.cache_enabled is True:
+            return self.cache.usedPrefix
+
+        self.cache.usedPrefix = self.getPrefixFromAdapterWithIP(self.cache.usedNetworkAdapter, self.cache.usedIP)
+        return self.cache.usedPrefix
 
 
 def example_test_main():

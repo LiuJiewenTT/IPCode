@@ -6,3 +6,4 @@ __pycache__/
 /venv*/
 src/IPCode_Client/IntegratedWebServer/temp.py
 *.spec
+temp
