@@ -19,7 +19,7 @@ def get_UsedIPv6():
 
 
 @app.get('/get_UsedIPv6Prefix', response_class=PlainTextResponse)
-def get_UsedIPv6():
+def get_UsedIPv6Prefix():
     global adapter
     usedIP_str = '::1'
     # usedPrefix = adapter.getUsedPrefixFromAdapterWithIP()

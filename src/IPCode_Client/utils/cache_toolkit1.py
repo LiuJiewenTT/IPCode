@@ -3,6 +3,11 @@ import time
 
 
 def cls_getvalidvalue(func):
+    """ 使函数验证失败会返回None的修饰器
+
+    :param func: 要修饰的函数
+    :return: 修饰过的验证失败会返回None的函数
+    """
     def wrapper(*args, **kw):
         self = args[0]
         # print(f'args: [{args}]')
@@ -14,7 +19,17 @@ def cls_getvalidvalue(func):
     return wrapper
 
 
-def cls_getvalidvalue_autorefresh(refresh_callback_function_name):
+def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__'):
+    """ 使函数验证失败会自动尝试刷新的修饰器
+
+    :param refresh_callback_function_name: （必选）指定用于刷新的成员函数
+    :return: 修饰过的验证失败会自动尝试刷新的函数
+    """
+    # 保留可能
+    assert refresh_callback_function_name != '__str__'  # assert语句有时在编译时会被优化掉
+    if refresh_callback_function_name is None:
+        refresh_callback_function_name = '__str__'
+
     def wrapper0(func):
         def wrapper1(*args, **kw):
             retv0 = cls_getvalidvalue(func)

@@ -87,7 +87,7 @@ class AdapterAndIP_Used(NetworkTools):
                 pass
 
         @property
-        @cls_getvalidvalue_autorefresh('_usedNetworkAdapter_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedNetworkAdapter_refresh_callback')
         def usedNetworkAdapter(self) -> Union[ifaddr.Adapter, None]:
             return self._usedNetworkAdapter
 
@@ -105,7 +105,7 @@ class AdapterAndIP_Used(NetworkTools):
             self._usedNetworkAdapter = data
 
         @property
-        @cls_getvalidvalue_autorefresh('_usedIP_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback')
         def usedIP(self):
             return self._usedIP
 
@@ -123,7 +123,7 @@ class AdapterAndIP_Used(NetworkTools):
             self._usedIP = data
 
         @property
-        @cls_getvalidvalue_autorefresh('_usedPrefix_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedPrefix_refresh_callback')
         def usedPrefix(self):
             return self._usedPrefix
 
