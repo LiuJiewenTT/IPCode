@@ -2,28 +2,31 @@ from typing import Union
 import time
 
 
-def cls_getvalidvalue(func):
-    """ 使函数验证失败会返回None的修饰器
+def cls_getvalidvalue(value_on_failure=None):
+    """ 使函数验证失败会返回指定值的修饰器。
 
-    :param func: 要修饰的函数
-    :return: 修饰过的验证失败会返回None的函数
+    :param value_on_failure: 失败时返回的值。
+    :return: 修饰过的验证失败会返回指定值的函数。
     """
-    def wrapper(*args, **kw):
-        self = args[0]
-        # print(f'args: [{args}]')
-        if self.valid is True:
-            return func(*args, **kw)
-        else:
-            # print('not valid')
-            return None
-    return wrapper
+    def wrapper0(func):
+        def wrapper1(*args, **kw):
+            self = args[0]
+            # print(f'args: [{args}]')
+            if self.valid is True:
+                return func(*args, **kw)
+            else:
+                # print('not valid')
+                return value_on_failure
+        return wrapper1
+    return wrapper0
 
 
-def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__'):
-    """ 使函数验证失败会自动尝试刷新的修饰器
+def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__', value_on_failure=None):
+    """ 使函数验证失败会自动尝试刷新的修饰器。
 
-    :param refresh_callback_function_name: （必选）指定用于刷新的成员函数
-    :return: 修饰过的验证失败会自动尝试刷新的函数
+    :param refresh_callback_function_name: (必选)指定用于刷新的成员函数。
+    :param value_on_failure: (高级选项)(内部逻辑数值)失败时返回的值(cls_getvalidvalue的内部值)。
+    :return: 修饰过的验证失败会自动尝试刷新的函数。
     """
     # 保留可能
     assert refresh_callback_function_name != '__str__'  # assert语句有时在编译时会被优化掉
@@ -32,16 +35,17 @@ def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__
 
     def wrapper0(func):
         def wrapper1(*args, **kw):
-            retv0 = cls_getvalidvalue(func)
+            retv0 = (cls_getvalidvalue(value_on_failure))(func)
             retv1 = retv0(*args, **kw)
-            if retv1 is None:
+            if retv1 == value_on_failure:
                 self = args[0]
                 # print(f'args: [{args}]')
                 refresh_callback = eval(f'self.{refresh_callback_function_name}')
                 # refresh_callback = self.refresh_callback_function
-                # print(f'refresh_callback: {refresh_callback}')
+                print(f'self: {self}')
+                print(f'refresh_callback: {refresh_callback}')
                 refresh_callback.__call__()
-                return retv0(*args, **kw)
+                return func(*args, **kw)
             return retv1
         return wrapper1
     return wrapper0

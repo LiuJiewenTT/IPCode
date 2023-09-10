@@ -53,7 +53,7 @@ class NetworkTools:
 
 class AdapterAndIP_Used(NetworkTools):
 
-    class cache_class(timelimtited_cache):
+    class CacheUnit(timelimtited_cache):
         auto_refresh: bool = True
         refresh_context: [4, 6, None] = None
 
@@ -71,7 +71,6 @@ class AdapterAndIP_Used(NetworkTools):
         _usedIP_refresh_callback_v4: Callable[[], ifaddr.IP]
         _usedIP_refresh_callback_v6: Callable[[], ifaddr.IP]
 
-
         def __init__(self):
             self.refresh_context_applywork(None)
 
@@ -84,7 +83,7 @@ class AdapterAndIP_Used(NetworkTools):
                 self._usedIP_refresh_callback = self._usedIP_refresh_callback_v6
                 self._usedNetworkAdapter_refresh_callback = self._usedNetworkAdapter_refresh_callback_v6
             else:
-                pass
+                pass  # keep
 
         @property
         @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedNetworkAdapter_refresh_callback')
@@ -105,8 +104,9 @@ class AdapterAndIP_Used(NetworkTools):
             self._usedNetworkAdapter = data
 
         @property
-        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback', value_on_failure='-1')
         def usedIP(self):
+            print(f'usedIP.getter self: {self}, value: {self._usedIP}')
             return self._usedIP
 
         # @property
@@ -120,6 +120,7 @@ class AdapterAndIP_Used(NetworkTools):
 
         @usedIP.setter
         def usedIP(self, data):
+            print(f'usedIP.setter self: {self}')
             self._usedIP = data
 
         @property
@@ -140,14 +141,108 @@ class AdapterAndIP_Used(NetworkTools):
         def usedPrefix(self, data):
             self._usedPrefix = data
 
+    class CacheBlock:
+
+        def __init__(self):
+            self.cache_unit1 = AdapterAndIP_Used.CacheUnit()    # Adapter, IP
+            self.cache_unit2 = AdapterAndIP_Used.CacheUnit()    # Prefix
+            # self.cache_units: List[AdapterAndIP_Used.CacheUnit] = [self.cache_unit1, self.cache_unit2]
+            print(f'unit1: {self.cache_unit1}')
+            print(f'unit2: {self.cache_unit2}')
+
+        @property
+        def validtime(self):
+            v1 = self.cache_unit1.validtime
+            v2 = self.cache_unit2.validtime
+            v = min(v1, v2)
+            return v
+
+        @validtime.setter
+        def validtime(self, data):
+            self.cache_unit1.validtime = data
+            self.cache_unit2.validtime = data
+
+        @property
+        def usedNetworkAdapter(self):
+            return self.cache_unit1.usedNetworkAdapter
+
+        @usedNetworkAdapter.setter
+        def usedNetworkAdapter(self, data):
+            self.cache_unit1.usedNetworkAdapter = data
+
+        @property
+        def usedIP(self):
+            print('**********')
+            print(self.cache_unit1.usedIP)
+            return self.cache_unit1.usedIP
+
+        @usedIP.setter
+        def usedIP(self, data):
+            self.cache_unit1.usedIP = data
+
+        @property
+        def usedPrefix(self):
+            return self.cache_unit2.usedPrefix
+
+        @usedPrefix.setter
+        def usedPrefix(self, data):
+            self.cache_unit2.usedPrefix = data
+
+        @property
+        def _usedNetworkAdapter_refresh_callback_v4(self):
+            return self.cache_unit1._usedNetworkAdapter_refresh_callback_v4
+
+        @_usedNetworkAdapter_refresh_callback_v4.setter
+        def _usedNetworkAdapter_refresh_callback_v4(self, data):
+            self.cache_unit1._usedNetworkAdapter_refresh_callback_v4 = data
+
+        @property
+        def _usedNetworkAdapter_refresh_callback_v6(self):
+            return self.cache_unit1._usedNetworkAdapter_refresh_callback_v6
+
+        @_usedNetworkAdapter_refresh_callback_v6.setter
+        def _usedNetworkAdapter_refresh_callback_v6(self, data):
+            self.cache_unit1._usedNetworkAdapter_refresh_callback_v6 = data
+
+        @property
+        def _usedIP_refresh_callback_v4(self):
+            return self.cache_unit1._usedIP_refresh_callback_v4
+
+        @_usedIP_refresh_callback_v4.setter
+        def _usedIP_refresh_callback_v4(self, data):
+            self.cache_unit1._usedIP_refresh_callback_v4 = data
+
+        @property
+        def _usedIP_refresh_callback_v6(self):
+            return self.cache_unit1._usedIP_refresh_callback_v6
+
+        @_usedIP_refresh_callback_v6.setter
+        def _usedIP_refresh_callback_v6(self, data):
+            self.cache_unit1._usedIP_refresh_callback_v6 = data
+
+        @property
+        def _usedPrefix_refresh_callback(self):
+            return self.cache_unit2._usedPrefix_refresh_callback
+
+        @_usedPrefix_refresh_callback.setter
+        def _usedPrefix_refresh_callback(self, data):
+            self.cache_unit2._usedPrefix_refresh_callback = data
+
+        def refresh_context_applywork(self, contextid: [4, 6]):
+            self.cache_unit1.refresh_context_applywork(contextid)
+            # self.cache_unit2.refresh_context_applywork(contextid)
+
     cache_enabled: bool = False
-    cache: cache_class = cache_class()
+    # cache: cache_class = cache_class()
+    cache: CacheBlock
+    getUsedPrefix: Callable
 
     # config section
     ifconfig_url: str = 'ifconfig.co'
     ifconfig_options: Union[str, List[str], None] = None
 
     def __init__(self):
+        self.cache = AdapterAndIP_Used.CacheBlock()
         self.cache._usedNetworkAdapter_refresh_callback_v4 = self.getUsedNetworkAdapter_v4
         self.cache._usedNetworkAdapter_refresh_callback_v6 = self.getUsedNetworkAdapter_v6
         self.cache._usedIP_refresh_callback_v4 = self.getUsedIP_v4
@@ -159,7 +254,7 @@ class AdapterAndIP_Used(NetworkTools):
         self.getUsedPrefix: Callable = self.getUsedPrefixFromAdapterWithIP
 
     def getUsedNetworkAdapterRaw(self, opt='') -> Dict[str, Union[None, ifaddr.Adapter, ifaddr.IP]]:
-        if self.cache_enabled is True and self.cache.valid is True:
+        if self.cache_enabled is True and self.cache.cache_unit1.valid is True:
             return {'adapter': self.cache.usedNetworkAdapter, 'ip': self.cache.usedIP}
 
         if self.ifconfig_options is str:
@@ -184,7 +279,7 @@ class AdapterAndIP_Used(NetworkTools):
                     break
         self.cache.usedNetworkAdapter = usedNetworkAdapter
         self.cache.usedIP = usedIP
-        self.cache._lasttime = time.time()
+        self.cache.cache_unit1._lasttime = time.time()
         return {'adapter': usedNetworkAdapter, 'ip': usedIP}
 
     def getUsedNetworkAdapterRaw_v6(self):
@@ -206,7 +301,7 @@ class AdapterAndIP_Used(NetworkTools):
         return self.getUsedNetworkAdapterRaw_v4()['ip']
 
     def getUsedPrefixFromAdapterWithIP(self):
-        if self.cache_enabled is True and self.cache.valid is True:
+        if self.cache_enabled is True and self.cache.cache_unit2.valid is True:
             return self.cache.usedPrefix
 
         # if self.cache.valid is not True:
@@ -214,6 +309,7 @@ class AdapterAndIP_Used(NetworkTools):
         # if self.cache.usedIP is None:
         #     self.getUsedIP_v6()
         self.cache.usedPrefix = self.getPrefixFromAdapterWithIP(self.cache.usedNetworkAdapter, self.cache.usedIP)
+        self.cache.cache_unit2._lasttime = time.time()
         return self.cache.usedPrefix
 
 
@@ -227,6 +323,7 @@ def example_test_main():
     # print(used_AdapterAndIP.getUsedIP_v6())
     print('-' * 20)
     print(used_AdapterAndIP.getUsedPrefixFromAdapterWithIP())
+
 
 if __name__ == '__main__':
     example_test_main()

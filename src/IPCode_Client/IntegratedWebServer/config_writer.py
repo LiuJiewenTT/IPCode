@@ -7,7 +7,14 @@ config = {
     "ifconfig": {
         "url": "6.ipw.cn",
         "options": [],
-        "cache_validtime": "infinite"  # "infinite", "none"
+        "cache_validtime": "5"  # "infinite", "none", 秒数
+    },
+    "pages": {
+        "homepage": {
+            "display_keys": [
+                "IPv6", "IPv6_Prefix"
+            ]
+        }
     }
 }
 
