@@ -38,12 +38,12 @@ def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__
             retv0 = (cls_getvalidvalue(value_on_failure))(func)
             retv1 = retv0(*args, **kw)
             if retv1 == value_on_failure:
-                self = args[0]
+                self = args[0]  # 这一行是必须存在的，用于向locals添加变量，或者换成args[0]。
                 # print(f'args: [{args}]')
                 refresh_callback = eval(f'self.{refresh_callback_function_name}')
                 # refresh_callback = self.refresh_callback_function
-                print(f'self: {self}')
-                print(f'refresh_callback: {refresh_callback}')
+                # print(f'self: {self}')
+                # print(f'refresh_callback: {refresh_callback}')
                 refresh_callback.__call__()
                 return func(*args, **kw)
             return retv1
@@ -55,6 +55,8 @@ class timelimtited_cache:
     # __valid: bool = False
     _lasttime: Union[float, None] = None
     _validtime: Union[float, int, str, None] = None
+    _validtime_min: Union[float, int] = 1
+    _validtime_v_none_disabled = True
 
     @property
     def valid(self):
@@ -64,12 +66,18 @@ class timelimtited_cache:
             if self._validtime == 'infinite':
                 return True and (self._lasttime is not None)
             elif self._validtime == 'none':
-                return False
+                if self._validtime_v_none_disabled is True:
+                    self._validtime = self._validtime_min
+                else:
+                    return False
+
+        if self._validtime == 'min':
+            self._validtime = self._validtime_min
 
         now = time.time()
-        period = now - self._lasttime
 
         if type(self._validtime) is float or type(self._validtime) is int:
+            period = now - self._lasttime
             if period < self._validtime:
                 return True
         return False
@@ -100,7 +108,9 @@ class timelimtited_cache:
                 try:
                     data = float(data)
                 except ValueError:
-                    if data != 'infinite' and data != 'none':
+                    if data == 'min':
+                        data = self._validtime_min
+                    elif data != 'infinite' and data != 'none':
                         raise ValueError(
                             'String type value "{string}" is illegal. Only "infinite" and "none" are allowed. '.format(
                                 string=data))

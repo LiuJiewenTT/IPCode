@@ -4,6 +4,7 @@ import ipaddress
 from IPCode_Client.utils.cache_toolkit1 import timelimtited_cache
 from IPCode_Client.utils.cache_toolkit1 import cls_getvalidvalue, cls_getvalidvalue_autorefresh
 from typing import Dict, Union, List, Callable
+from ast import literal_eval
 import time
 
 
@@ -104,9 +105,9 @@ class AdapterAndIP_Used(NetworkTools):
             self._usedNetworkAdapter = data
 
         @property
-        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback', value_on_failure='-1')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback')
         def usedIP(self):
-            print(f'usedIP.getter self: {self}, value: {self._usedIP}')
+            # print(f'usedIP.getter self: {self}, value: {self._usedIP}')
             return self._usedIP
 
         # @property
@@ -120,7 +121,7 @@ class AdapterAndIP_Used(NetworkTools):
 
         @usedIP.setter
         def usedIP(self, data):
-            print(f'usedIP.setter self: {self}')
+            # print(f'usedIP.setter self: {self}')
             self._usedIP = data
 
         @property
@@ -154,7 +155,17 @@ class AdapterAndIP_Used(NetworkTools):
         def validtime(self):
             v1 = self.cache_unit1.validtime
             v2 = self.cache_unit2.validtime
-            v = min(v1, v2)
+            try:
+                v1_d = literal_eval(v1)
+                v2_d = literal_eval(v2)
+                if v1_d is None or v2_d is None:
+                    raise AssertionError()
+            except:
+                v = v1
+                pass
+            else:
+                v = min(v1_d, v2_d)
+            # v = min(v1, v2)
             return v
 
         @validtime.setter
@@ -172,8 +183,6 @@ class AdapterAndIP_Used(NetworkTools):
 
         @property
         def usedIP(self):
-            print('**********')
-            print(self.cache_unit1.usedIP)
             return self.cache_unit1.usedIP
 
         @usedIP.setter
@@ -308,9 +317,9 @@ class AdapterAndIP_Used(NetworkTools):
         #     self.getUsedIP_v6()
         # if self.cache.usedIP is None:
         #     self.getUsedIP_v6()
-        self.cache.usedPrefix = self.getPrefixFromAdapterWithIP(self.cache.usedNetworkAdapter, self.cache.usedIP)
+        self.cache.usedPrefix = usedPrefix = self.getPrefixFromAdapterWithIP(self.cache.usedNetworkAdapter, self.cache.usedIP)
         self.cache.cache_unit2._lasttime = time.time()
-        return self.cache.usedPrefix
+        return usedPrefix
 
 
 def example_test_main():
