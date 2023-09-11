@@ -11,7 +11,6 @@ def cls_getvalidvalue(value_on_failure=None):
     def wrapper0(func):
         def wrapper1(*args, **kw):
             self = args[0]
-            # print(f'args: [{args}]')
             if self.valid is True:
                 return func(*args, **kw)
             else:
@@ -28,8 +27,9 @@ def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__
     :param value_on_failure: (高级选项)(内部逻辑数值)失败时返回的值(cls_getvalidvalue的内部值)。
     :return: 修饰过的验证失败会自动尝试刷新的函数。
     """
-    # 保留可能
-    assert refresh_callback_function_name != '__str__'  # assert语句有时在编译时会被优化掉
+    # 保留使用__str__()可能
+    if refresh_callback_function_name == '__str__':
+        raise AssertionError('No refresh function indicated. ')
     if refresh_callback_function_name is None:
         refresh_callback_function_name = '__str__'
 
@@ -39,10 +39,7 @@ def cls_getvalidvalue_autorefresh(refresh_callback_function_name: str = '__str__
             retv1 = retv0(*args, **kw)
             if retv1 == value_on_failure:
                 self = args[0]  # 这一行是必须存在的，用于向locals添加变量，或者换成args[0]。
-                # print(f'args: [{args}]')
                 refresh_callback = eval(f'self.{refresh_callback_function_name}')
-                # refresh_callback = self.refresh_callback_function
-                # print(f'self: {self}')
                 # print(f'refresh_callback: {refresh_callback}')
                 refresh_callback.__call__()
                 return func(*args, **kw)
@@ -84,7 +81,7 @@ class timelimtited_cache:
 
     @valid.setter
     def valid(self, data: bool):
-        """ 手动设置可用状态，这将会禁用过期验证。
+        """ 手动设置可用状态，这将可能会禁用过期验证。
 
         :param data: 可用状态，True/False
         :return: 无
@@ -93,7 +90,10 @@ class timelimtited_cache:
         if data is True:
             self._validtime = 'infinite'
         else:
-            self._validtime = 'none'
+            if self._validtime_v_none_disabled is True:
+                self._validtime = self._validtime_min
+            else:
+                self._validtime = 'none'
 
     @property
     def validtime(self):

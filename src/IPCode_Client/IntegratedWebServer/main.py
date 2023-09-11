@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import PlainTextResponse, HTMLResponse, RedirectResponse
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 from IPCode_Client.utils.network_toolkit1 import AdapterAndIP_Used
 
@@ -34,8 +34,8 @@ def get_UsedIPv6Prefix():
 
 def page_homepage_config_keymap(display_keys: List[str]) -> Dict[str, Any]:
     keymap = {}
-    # if 'IPv6' in display_keys:
-    #     keymap['blank_ipv6_address'] = get_UsedIPv6()
+    if 'IPv6' in display_keys:
+        keymap['blank_ipv6_address'] = get_UsedIPv6()
     if 'IPv6_Prefix' in display_keys:
         keymap['blank_ipv6_prefix'] = get_UsedIPv6Prefix()
     return keymap
@@ -102,8 +102,13 @@ def test_main():
             ifconfig_url = config_ifconfig.get('url')
             ifconfig_options: list = config_ifconfig.get('options')
             ifconfig_cache_validtime: str = config_ifconfig.get('cache_validtime')
+            ifconfig_cache_validtime_min: Union[int, float] = config_ifconfig.get('cache_validtime_min')
+            ifconfig_cache_validtime_v_none_disabled: bool = config_ifconfig.get('cache_validtime_v_none_disabled')
             if ifconfig_url is not None: adapter.ifconfig_url = ifconfig_url
             if ifconfig_options is not None: adapter.ifconfig_options = ifconfig_options
+            # 此处把validtime赋值后移
+            if ifconfig_cache_validtime_min is not None: adapter.cache.general_property = 'all', '_validtime_min', ifconfig_cache_validtime_min
+            if ifconfig_cache_validtime_v_none_disabled is not None: adapter.cache.general_property = ('all', '_validtime_v_none_disabled', ifconfig_cache_validtime_v_none_disabled)
             if ifconfig_cache_validtime is not None: adapter.cache.validtime = ifconfig_cache_validtime
 
             global config_pages

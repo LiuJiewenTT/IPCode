@@ -2,8 +2,9 @@ import ifaddr
 import subprocess
 import ipaddress
 from IPCode_Client.utils.cache_toolkit1 import timelimtited_cache
-from IPCode_Client.utils.cache_toolkit1 import cls_getvalidvalue, cls_getvalidvalue_autorefresh
-from typing import Dict, Union, List, Callable
+from IPCode_Client.utils import cache_toolkit2
+from IPCode_Client.utils.cache_toolkit1 import cls_getvalidvalue_autorefresh
+from typing import Dict, Union, List, Callable, Any
 from ast import literal_eval
 import time
 
@@ -30,10 +31,10 @@ class NetworkTools:
             # suffix_length = ipaddress.IPV6LENGTH - x['network_prefix_length']
             # x['prefix'] = ipaddress.IPv6Address((int(x['ip']) >> suffix_length) << suffix_length)
             x['prefix'] = self.getPrefixFromIPWithLength(x['ip'], x['network_prefix_length'])
-        ip_list = [x['ip'] for x in ips2]
-        ip_list_str = [x.compressed for x in ip_list]
+        # ip_list = [x['ip'] for x in ips2]
+        # ip_list_str = [x.compressed for x in ip_list]
         # print(ip_list_str)
-        ip_exploded_list_str = [x.exploded for x in ip_list]
+        # ip_exploded_list_str = [x.exploded for x in ip_list]
         # print(ip_exploded_list_str)
         # for x in ips2:
         #     print(x['prefix'])
@@ -106,8 +107,7 @@ class AdapterAndIP_Used(NetworkTools):
 
         @property
         @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback')
-        def usedIP(self):
-            # print(f'usedIP.getter self: {self}, value: {self._usedIP}')
+        def usedIP(self) -> Union[ifaddr.IP, None]:
             return self._usedIP
 
         # @property
@@ -126,7 +126,7 @@ class AdapterAndIP_Used(NetworkTools):
 
         @property
         @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedPrefix_refresh_callback')
-        def usedPrefix(self):
+        def usedPrefix(self) -> Union[ipaddress.IPv6Address, None]:
             return self._usedPrefix
 
         # @property
@@ -142,14 +142,13 @@ class AdapterAndIP_Used(NetworkTools):
         def usedPrefix(self, data):
             self._usedPrefix = data
 
-    class CacheBlock:
+    class CacheBlock(cache_toolkit2.CacheBlock):
+        cache_units: List[Any]
 
         def __init__(self):
             self.cache_unit1 = AdapterAndIP_Used.CacheUnit()    # Adapter, IP
             self.cache_unit2 = AdapterAndIP_Used.CacheUnit()    # Prefix
-            # self.cache_units: List[AdapterAndIP_Used.CacheUnit] = [self.cache_unit1, self.cache_unit2]
-            print(f'unit1: {self.cache_unit1}')
-            print(f'unit2: {self.cache_unit2}')
+            self.cache_units: List[AdapterAndIP_Used.CacheUnit] = [self.cache_unit1, self.cache_unit2]
 
         @property
         def validtime(self):
@@ -242,7 +241,6 @@ class AdapterAndIP_Used(NetworkTools):
             # self.cache_unit2.refresh_context_applywork(contextid)
 
     cache_enabled: bool = False
-    # cache: cache_class = cache_class()
     cache: CacheBlock
     getUsedPrefix: Callable
 
@@ -313,9 +311,9 @@ class AdapterAndIP_Used(NetworkTools):
         if self.cache_enabled is True and self.cache.cache_unit2.valid is True:
             return self.cache.usedPrefix
 
-        # if self.cache.valid is not True:
+        # if self.cache.valid is not True:  # 仅当没有使用自动刷新修饰器时使用
         #     self.getUsedIP_v6()
-        # if self.cache.usedIP is None:
+        # if self.cache.usedIP is None:     # 仅当没有使用自动刷新修饰器时使用
         #     self.getUsedIP_v6()
         self.cache.usedPrefix = usedPrefix = self.getPrefixFromAdapterWithIP(self.cache.usedNetworkAdapter, self.cache.usedIP)
         self.cache.cache_unit2._lasttime = time.time()

@@ -5,9 +5,11 @@ config = {
         "host_port": 8000
     },
     "ifconfig": {
-        "url": "6.ipw.cn",
+        "url": "localhost:8001",
         "options": [],
-        "cache_validtime": "5"  # "infinite", "none", 秒数
+        "cache_validtime": "none",  # "infinite", "none", "min", 秒数。
+        "cache_validtime_min": 5,  # "min"的值。
+        "cache_validtime_v_none_disabled": True    # True/False。此项默认为True，将使"none"等同于"min"。
     },
     "pages": {
         "homepage": {

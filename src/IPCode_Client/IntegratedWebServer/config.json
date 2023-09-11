@@ -4,9 +4,11 @@
     "host_port": 8000
   },
   "ifconfig": {
-    "url": "6.ipw.cn",
+    "url": "localhost:8001",
     "options": [],
-    "cache_validtime": "infinite"
+    "cache_validtime": "none",
+    "cache_validtime_min": 5,
+    "cache_validtime_v_none_disabled": true
   },
   "pages": {
     "homepage": {
