@@ -1,5 +1,9 @@
 import orjson
 config = {
+    "config_info": {
+        "print_on_start": True,
+        "ignore": False
+    },
     "host_info": {
         "host_str": "",
         "host_port": 8000

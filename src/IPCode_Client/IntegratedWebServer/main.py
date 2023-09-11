@@ -45,7 +45,10 @@ def page_homepage_config_keymap(display_keys: List[str]) -> Dict[str, Any]:
 def entrance_index():
     # page: "homepage"
     page_config = config_pages.get('homepage')
-    keymap = page_homepage_config_keymap(page_config['display_keys'])
+    if page_config is not None:
+        keymap = page_homepage_config_keymap(page_config['display_keys'])
+    else:
+        keymap = {}
     with open('res/main_page.html', mode='r', encoding='utf-8') as f:
         s_lines = f.readlines()
     s_lines2 = []
@@ -87,13 +90,25 @@ def test_main():
     host_str = ''
     host_port = 8000
 
+    global config_pages
+    config_pages = {}
+
     if os.path.exists('config.json'):
         with open('config.json', 'r') as f:
             config_str = f.read()
-            print(config_str)
+        # print(config_str)
+
+        def loadconfig():
             config = orjson.loads(config_str)
             config: dict
 
+            config_configi: dict = config.get('config_info')
+            configi_print_on_start: bool = config_configi.get('print_on_start')
+            configi_ignore: bool = config_configi.get('ignore')
+            if configi_ignore is True: return
+            if configi_print_on_start is not False: print(config_str)
+
+            nonlocal host_str, host_port
             config_host: dict = config.get('host_info')
             host_str = config_host.get('host_str')
             host_port = int(config_host['host_port'])
@@ -114,6 +129,7 @@ def test_main():
             global config_pages
             config_pages = config.get('pages')
 
+        loadconfig()
 
     # uvicorn.run(app, host='127.0.0.1', port=8000)
     # uvicorn.run(app, host='0.0.0.0', port=8000)
