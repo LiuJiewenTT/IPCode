@@ -8,7 +8,9 @@ app = FastAPI()
 def get_UsedIPv6():
     global adapter
     # usedIP_str = '::1'
-    usedIP_str = '2408:8956:7a80:30de:94a7:e179:b309:fee7'
+    # usedIP_str = '2408:8956:7a80:30de:94a7:e179:b309:fee7'
+    # usedIP_str = '2408:8956:7a40:1e2a:94a7:e179:b309:fee7'
+    usedIP_str = ""
     return usedIP_str
 
 

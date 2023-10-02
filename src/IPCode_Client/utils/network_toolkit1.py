@@ -20,13 +20,21 @@ class NetworkTools:
         return ipaddress.IPv6Address(self.getPrefixFromIPWithLength_Int(ip, length))
 
     def getPrefixFromAdapterWithIP(self, adapter: ifaddr.Adapter, ip: ifaddr.IP):
+        if ip is None or adapter is None:
+            print('[Debug]: IP is {IP_status} and adapter is {adapter_status}.'
+                  .format(IP_status=None if ip is None else 'not None',
+                          adapter_status=None if adapter is None else 'not None'))
+            return None
         if not ip.is_IPv6:
             print('[Debug]: Function getPrefixFromAdapterWithIP() only supports IPv6.')
             return None
         usedPrefix = None
         ip2 = ipaddress.IPv6Address(ip.ip[0])
-        ips2 = [{'ip': ipaddress.IPv6Address(x.ip[0]), 'network_prefix_length': x.network_prefix}
-                for x in adapter.ips if x.is_IPv6]
+        if adapter is not None:
+            ips2 = [{'ip': ipaddress.IPv6Address(x.ip[0]), 'network_prefix_length': x.network_prefix}
+                    for x in adapter.ips if x.is_IPv6]
+        else:
+            ips2 = [{'ip': ip2, 'network_prefix_length': ip.network_prefix}]
         for x in ips2:
             # suffix_length = ipaddress.IPV6LENGTH - x['network_prefix_length']
             # x['prefix'] = ipaddress.IPv6Address((int(x['ip']) >> suffix_length) << suffix_length)
@@ -42,7 +50,9 @@ class NetworkTools:
         # In[33]: a2._ip - a2_s._ip == a2_p._ip
         # Out[33]: True
         for x in ips2:
-            if x['ip'] != ip2:
+            # if x['ip'] != ip2:
+            # This is disabled because full length might be possible in real life.
+            if True:
                 temp = int(x['prefix']) & int(ip2)
                 # print(ipaddress.IPv6Address(temp))
                 if temp == int(x['prefix']):
@@ -88,7 +98,7 @@ class AdapterAndIP_Used(NetworkTools):
                 pass  # keep
 
         @property
-        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedNetworkAdapter_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedNetworkAdapter_refresh_callback', value_on_failure=-1)
         def usedNetworkAdapter(self) -> Union[ifaddr.Adapter, None]:
             return self._usedNetworkAdapter
 
@@ -106,7 +116,7 @@ class AdapterAndIP_Used(NetworkTools):
             self._usedNetworkAdapter = data
 
         @property
-        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedIP_refresh_callback', value_on_failure=-1)
         def usedIP(self) -> Union[ifaddr.IP, None]:
             return self._usedIP
 
@@ -125,7 +135,7 @@ class AdapterAndIP_Used(NetworkTools):
             self._usedIP = data
 
         @property
-        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedPrefix_refresh_callback')
+        @cls_getvalidvalue_autorefresh(refresh_callback_function_name='_usedPrefix_refresh_callback', value_on_failure=-1)
         def usedPrefix(self) -> Union[ipaddress.IPv6Address, None]:
             return self._usedPrefix
 
@@ -247,6 +257,7 @@ class AdapterAndIP_Used(NetworkTools):
     # config section
     ifconfig_url: str = 'ifconfig.co'
     ifconfig_options: Union[str, List[str], None] = None
+    if_verifyIP = False
 
     def __init__(self):
         self.cache = AdapterAndIP_Used.CacheBlock()
@@ -260,18 +271,18 @@ class AdapterAndIP_Used(NetworkTools):
         self.cache.refresh_context_applywork(6)
         self.getUsedPrefix: Callable = self.getUsedPrefixFromAdapterWithIP
 
-    def getUsedNetworkAdapterRaw(self, opt='') -> Dict[str, Union[None, ifaddr.Adapter, ifaddr.IP]]:
+    def getUsedNetworkAdapterRaw(self, curl_opt='') -> Dict[str, Union[None, ifaddr.Adapter, ifaddr.IP]]:
         if self.cache_enabled is True and self.cache.cache_unit1.valid is True:
             return {'adapter': self.cache.usedNetworkAdapter, 'ip': self.cache.usedIP}
 
         if self.ifconfig_options is str:
-            opt += f' {self.ifconfig_options}'
+            curl_opt += f' {self.ifconfig_options}'
         elif self.ifconfig_options is List[str]:
             for i in self.ifconfig_options:
-                opt += f' {i}'
+                curl_opt += f' {i}'
 
         adapters = ifaddr.get_adapters()
-        curl_command_str = f'curl --silent {opt} {self.ifconfig_url}'
+        curl_command_str = f'curl --silent {curl_opt} {self.ifconfig_url}'
         print(f'[Debug]: curl_command_str: {curl_command_str}')
         p = subprocess.Popen(curl_command_str, text=True, stdout=subprocess.PIPE)
         ip_used = p.stdout.readline()
@@ -280,20 +291,25 @@ class AdapterAndIP_Used(NetworkTools):
         usedNetworkAdapter = usedIP = None
         for adapter in adapters:
             for ip in adapter.ips:
-                if ip_used in str(ip.ip):
+                if ip_used in str(ip.ip) and ip_used != '':
+                    # 如果查找不到实际IP地址，那么usedIP和usedNetworkAdapter就会保持为None。
+                    # 当ip_used为空字符串时会任意匹配
                     usedNetworkAdapter = adapter
                     usedIP = ip
                     break
+        if self.if_verifyIP is False and usedIP is None and ip_used != '':
+            # 此处使用假数据。构造时必须是tuple才能被识别为IPv6，否则无法建立正确对应关系。(ip, flowinfo, scope_id)
+            usedIP = ifaddr.IP((ip_used, 0, 0), network_prefix=128, nice_name='force_applied_data', )
         self.cache.usedNetworkAdapter = usedNetworkAdapter
         self.cache.usedIP = usedIP
         self.cache.cache_unit1._lasttime = time.time()
         return {'adapter': usedNetworkAdapter, 'ip': usedIP}
 
     def getUsedNetworkAdapterRaw_v6(self):
-        return self.getUsedNetworkAdapterRaw(opt='-6')
+        return self.getUsedNetworkAdapterRaw(curl_opt='-6')
 
     def getUsedNetworkAdapterRaw_v4(self):
-        return self.getUsedNetworkAdapterRaw(opt='-4')
+        return self.getUsedNetworkAdapterRaw(curl_opt='-4')
 
     def getUsedNetworkAdapter_v6(self) -> ifaddr.Adapter:
         return self.getUsedNetworkAdapterRaw_v6()['adapter']

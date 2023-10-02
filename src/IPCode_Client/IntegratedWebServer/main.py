@@ -17,6 +17,8 @@ def get_UsedIPv6():
     global adapter
     usedIP_str = '::1'
     usedIP = adapter.getUsedIP_v6()
+    if usedIP is None:
+        return 'None'
     usedIP_str = usedIP.ip[0]
     return usedIP_str
 
