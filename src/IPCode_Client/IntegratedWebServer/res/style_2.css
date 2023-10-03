@@ -1,0 +1,11 @@
+/*
+当前参数：
+1 rem = 16 px
+
+*/
+.status_icon_span {
+    width:0.625rem;
+    height:0.625rem;
+    display:inline-block;
+    margin-inline:0.625rem;
+}
