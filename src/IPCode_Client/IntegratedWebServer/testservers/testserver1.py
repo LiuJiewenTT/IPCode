@@ -1,8 +1,11 @@
-# import multiprocessing
-import sys
-import subprocess
-# import os
+# 用终端运行更好，不要用PyCharm的终端，因为输入会被输出打断。
+# D:\TT\TTBC-D\python\wksp3-jetbrain\IPCode\venv\Scripts\python.exe D:/TT/TTBC-D/python/wksp3-jetbrain/IPCode/src/IPCode_Client/IntegratedWebServer/testservers/testserver1.py
 
+import multiprocessing
+import sys
+# import os
+import subprocess
+from threading import Thread
 from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 
@@ -16,36 +19,33 @@ def get_UsedIPv6():
     # usedIP_str = '::1'
     # usedIP_str = '2408:8956:7a80:30de:94a7:e179:b309:fee7'
     # usedIP_str = '2408:8956:7a40:1e2a:94a7:e179:b309:fee7'
-    usedIP_str = ""
+    # usedIP_str = ""
     return usedIP_str
 
 
+def uvi_run():
+    import uvicorn
+    # sys.stdout = output_pipe
+    # sys.stderr = output_pipe
+    print('in_uvi_run')
+    uvicorn.run(app, host='', port=8001)
+
+
 if __name__ == '__main__':
-    is_parent = True
-    if sys.argv.__len__() >= 2:
-        if sys.argv[-1] == '-child':
-            is_parent = False
-    if not is_parent:
-        import uvicorn
-        uvicorn.run(app, host='', port=8001)
-    else:
-        child_argv = sys.argv.copy() + ['-child']
-        if sys.argv[0][-3:] == '.py':
-            child_argv = ['python.exe'] + child_argv
-        print(child_argv)
-        # p = multiprocessing.Process(name=sys.argv[0], args=tuple(child_argv))
-        # sp = subprocess.Popen(child_argv)
-        sp = subprocess.Popen(child_argv, stdout=subprocess.PIPE)
-        # pm_list = []
-        while True:
-            if sp.poll() is not None:
-                sp = subprocess.Popen(child_argv, stdout=subprocess.PIPE)
-                # pm_list = multiprocessing.active_children()
-            print(sp.stdout)
-            s = input()
-            if s == 'exit' or s == "quit":
-                if sp.poll() is not None:
-                    sp.kill()
-                sys.exit(0)
-            else:
-                usedIP_str = s
+    usedIP_str = ''
+    p = None
+    # conn_send, conn_recv = multiprocessing.Pipe()
+    print('Current IP: ' + usedIP_str)
+    while True:
+        if p is None or p.is_alive() is False:
+            p = Thread(target=uvi_run, name='uvi_run', daemon=True)
+            p.start()
+        s = input('>')
+        s = s.strip(' ')
+        if s == 'exit' or s == 'quit':
+            if p.is_alive():
+                # p.kill()
+                pass
+            sys.exit(0)
+        usedIP_str = s
+        print('Current IP: ' + usedIP_str)
