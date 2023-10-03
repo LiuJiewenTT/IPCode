@@ -295,15 +295,21 @@ class AdapterAndIP_Used(NetworkTools):
         ip_used = ip_used.strip(' \r\n')
         print(f'[Debug]: IP: "{ip_used}".')
         usedNetworkAdapter = usedIP = None
-        ip_used_ipaddress = ipaddress.IPv6Address(ip_used)
-        for adapter in adapters:
-            for ip in adapter.ips:
-                if ip_used_ipaddress == ipaddress.ip_address(self.ifaddr_getIPStr(ip)) and ip_used != '':
-                    # 如果查找不到实际IP地址，那么usedIP和usedNetworkAdapter就会保持为None。
-                    # 当ip_used为空字符串时会任意匹配
-                    usedNetworkAdapter = adapter
-                    usedIP = ip
-                    break
+        if ip_used != '' or True:
+            try:
+                ip_used_ipaddress = ipaddress.ip_address(ip_used)
+            except ValueError as ve:
+                print(f"[Debug]: Received information isn't a valid IP address.")
+                print(f'[ValueError]: {ve}')
+            else:
+                for adapter in adapters:
+                    for ip in adapter.ips:
+                        if ip_used_ipaddress == ipaddress.ip_address(self.ifaddr_getIPStr(ip)):
+                            # 如果查找不到实际IP地址，那么usedIP和usedNetworkAdapter就会保持为None。
+                            # 当ip_used为空字符串时会任意匹配
+                            usedNetworkAdapter = adapter
+                            usedIP = ip
+                            break
         if self.if_verifyIP is False and usedIP is None and ip_used != '':
             # 此处使用假数据。构造时必须是tuple才能被识别为IPv6，否则无法建立正确对应关系。(ip, flowinfo, scope_id)
             print(f'[Debug]: fake IP.')
