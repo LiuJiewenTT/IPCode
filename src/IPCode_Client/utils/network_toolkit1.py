@@ -11,6 +11,12 @@ import time
 
 class NetworkTools:
 
+    def ifaddr_getIPStr(self, r: ifaddr.IP):
+        if r.is_IPv6:
+            return r.ip[0]
+        else:
+            return r.ip
+
     def getPrefixFromIPWithLength_Int(self, ip: ipaddress.IPv6Address, length: int):
         suffix_length = ipaddress.IPV6LENGTH - length
         prefix = (int(ip) >> suffix_length) << suffix_length
@@ -289,9 +295,10 @@ class AdapterAndIP_Used(NetworkTools):
         ip_used = ip_used.strip(' \r\n')
         print(f'[Debug]: IP: "{ip_used}".')
         usedNetworkAdapter = usedIP = None
+        ip_used_ipaddress = ipaddress.IPv6Address(ip_used)
         for adapter in adapters:
             for ip in adapter.ips:
-                if ip_used in str(ip.ip) and ip_used != '':
+                if ip_used_ipaddress == ipaddress.ip_address(self.ifaddr_getIPStr(ip)) and ip_used != '':
                     # 如果查找不到实际IP地址，那么usedIP和usedNetworkAdapter就会保持为None。
                     # 当ip_used为空字符串时会任意匹配
                     usedNetworkAdapter = adapter
@@ -299,6 +306,7 @@ class AdapterAndIP_Used(NetworkTools):
                     break
         if self.if_verifyIP is False and usedIP is None and ip_used != '':
             # 此处使用假数据。构造时必须是tuple才能被识别为IPv6，否则无法建立正确对应关系。(ip, flowinfo, scope_id)
+            print(f'[Debug]: fake IP.')
             usedIP = ifaddr.IP((ip_used, 0, 0), network_prefix=128, nice_name='force_applied_data', )
         self.cache.usedNetworkAdapter = usedNetworkAdapter
         self.cache.usedIP = usedIP
