@@ -2,6 +2,7 @@
 # D:\TT\TTBC-D\python\wksp3-jetbrain\IPCode\venv\Scripts\python.exe D:/TT/TTBC-D/python/wksp3-jetbrain/IPCode/src/IPCode_Client/IntegratedWebServer/testservers/testserver1.py
 
 # import multiprocessing
+import multiprocessing
 import sys
 # import os
 # import subprocess
@@ -34,6 +35,7 @@ def uvi_run():
 if __name__ == '__main__':
     usedIP_str = ''
     p = None
+    multiprocessing.freeze_support()
     # conn_send, conn_recv = multiprocessing.Pipe()
     print('Current IP: ' + usedIP_str)
     while True:

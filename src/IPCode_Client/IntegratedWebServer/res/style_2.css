@@ -3,9 +3,18 @@
 1 rem = 16 px
 
 */
+:root {
+    --mcolor-dark-red: #860000;
+}
+
 .status_icon_span {
     width:0.625rem;
     height:0.625rem;
     display:inline-block;
     margin-inline:0.625rem;
+}
+
+.Badge_Newest {
+    background: var(--mcolor-dark-red);
+    color: white;
 }
