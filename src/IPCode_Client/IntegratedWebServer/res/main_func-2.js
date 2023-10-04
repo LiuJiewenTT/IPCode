@@ -154,6 +154,7 @@ function checkNewestStatus_ItemProcess_ProcessWithPattern(item, strdict){
     let logStringDict = strdict['logStringDict']
     let storageKeyDict = strdict['storageKeyDict']
     let if_newest = false
+    // let if_newest = true    // dev-opt
     let childNodes = item.childNodes
     let code_item
     let status_icon_item
