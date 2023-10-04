@@ -112,7 +112,7 @@ class timelimtited_cache:
                         data = self._validtime_min
                     elif data != 'infinite' and data != 'none':
                         raise ValueError(
-                            'String type value "{string}" is illegal. Only "infinite" and "none" are allowed. '.format(
+                            'String type value "{string}" is illegal. Only "infinite", "min" and "none" are allowed. '.format(
                                 string=data))
                     pass
         self._validtime = data
