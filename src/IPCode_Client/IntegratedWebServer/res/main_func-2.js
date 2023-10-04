@@ -11,7 +11,8 @@
 // Part 1
 function js_2_onload(){
     // let func_name='onload'
-    checkNewestStatus()
+    // checkNewestStatus()
+    checkNewestStatus_ver2()
 }
 
 function wrap_an_element(element, wrapper_label){
@@ -55,9 +56,9 @@ function checkNewestStatus(){
         }
         if( if_newest === true ){
             // let badge_newest = document.getElementById("badge_newest_ipv6_address")
-            let badge_newest = span_ipv6_address.getElementsByClassName("Badge_Newest")
+            let badge_newest = span_ipv6_address.getElementsByClassName("Badge_Newest").item(0)
             console.log(badge_newest!=null)
-            badge_newest.item(0).removeAttribute("hidden")
+            badge_newest.removeAttribute("hidden")
         }
     }
     if( currentIPv6Prefix != null ){
@@ -82,6 +83,142 @@ function checkNewestStatus(){
         }
     }
     console.log("[checkNewestStatus]:End")
+}
+
+function checkNewestStatus_ver2(){
+    console.log("[checkNewestStatus]:Begin")
+    let span_ipv6_address = document.getElementById("span_ipv6_address")
+    let span_ipv6_prefix = document.getElementById("span_ipv6_prefix")
+    {
+        // ipv6_address part
+        let strdict = {}
+        let logStringDict = {
+            'code_item_is_none': "[Warning]: code_ipv6_address is None",
+            'info_is_new': "[Info]: New IPv6_Address",
+        }
+        let storageKeyDict = {
+            'key1': "IPv6_Address",
+        }
+        strdict['logStringDict'] = logStringDict
+        strdict['storageKeyDict'] = storageKeyDict
+        checkNewestStatus_ItemProcess_ProcessWithPattern(span_ipv6_address, strdict)
+    }
+    {
+        // ipv6_prefix part
+        let strdict = {}
+        let logStringDict = {
+            'code_item_is_none': "[Warning]: code_ipv6_prefix is None",
+            'info_is_new': "[Info]: New IPv6_Prefix",
+        }
+        let storageKeyDict = {
+            'key1': "IPv6_Prefix",
+        }
+        strdict['logStringDict'] = logStringDict
+        strdict['storageKeyDict'] = storageKeyDict
+        checkNewestStatus_ItemProcess_ProcessWithPattern(span_ipv6_prefix, strdict)
+    }
+    console.log("[checkNewestStatus]:End")
+}
+
+function checkNewestStatus_ItemProcess_ItemByClassName(item, strdict){
+    // all is className, not ID. (deprecated)
+    let classNameDict = strdict['classNameDict']
+    let logStringDict = strdict['logStringDict']
+    let storageKeyDict = strdict['storageKeyDict']
+    let if_newest = false
+    let code_item = item.getElementsByClassName(classNameDict['code_item_className'])[0]
+    let status_icon_item = item.getElementsByClassName(classNameDict['status_icon_item_className'])[0]
+    let info = code_item.innerText
+    if( info === "None" ){
+        console.log(logStringDict['code_item_is_none'])
+        wrap_del_an_element(code_item)
+        status_icon_item.style.background = "red"
+    }
+    else {
+        status_icon_item.style.background = "green"
+        let storedValue = localStorage.getItem(storageKeyDict['key1'])
+        if( storedValue !== info ){
+            console.log(logStringDict['info_is_new'])
+            if_newest = true
+            localStorage.setItem(storageKeyDict['key1'], info)
+        }
+    }
+    if( if_newest === true ){
+        let badge_newest = item.getElementsByClassName(classNameDict['badge_newest'])[0]
+        // console.log(badge_newest!=null)
+        badge_newest.item(0).removeAttribute("hidden")
+    }
+}
+
+function checkNewestStatus_ItemProcess_ProcessWithPattern(item, strdict){
+    let logStringDict = strdict['logStringDict']
+    let storageKeyDict = strdict['storageKeyDict']
+    let if_newest = false
+    let childNodes = item.childNodes
+    let code_item
+    let status_icon_item
+    let badge_newest
+    let info
+    // get items part
+    {
+        // get status_icon_item
+        for (let i=0,j=0, localName_index = 1; i<childNodes.length && j < localName_index; ++i){
+            if( childNodes[i].localName === "span" ){
+                ++j;
+                if( j === localName_index ){
+                    status_icon_item = childNodes[i]
+                    break
+                }
+            }
+        }
+    }
+    {
+        // get code_item
+        for (let i=0,j=0, localName_index = 1; i<childNodes.length && j < localName_index; ++i){
+            if( childNodes[i].localName === "code" ){
+                ++j;
+                if( j === localName_index ){
+                    code_item = childNodes[i]
+                    break
+                }
+            }
+        }
+        {
+            // get info
+            info = code_item.innerText
+        }
+    }
+    {
+        // get badge_newest
+        for (let i=0,j=0, localName_index = 2; i<childNodes.length && j < localName_index; ++i){
+            if( childNodes[i].localName === "span" ){
+                ++j;
+                if( j === localName_index ){
+                    badge_newest = childNodes[i]
+                    break
+                }
+            }
+        }
+    }
+    // Process Part
+    if( info === "None" ){
+        console.log(logStringDict['code_item_is_none'])
+        wrap_del_an_element(code_item)
+        status_icon_item.style.background = "red"
+    }
+    else {
+        status_icon_item.style.background = "green"
+        let storedValue = localStorage.getItem(storageKeyDict['key1'])
+        if( storedValue !== info ){
+            console.log(logStringDict['info_is_new'])
+            if_newest = true
+            localStorage.setItem(storageKeyDict['key1'], info)
+        }
+    }
+    if( if_newest === true ){
+        // console.log(badge_newest!=null)
+        badge_newest.removeAttribute("hidden")
+    }
 }
 
 // ________________ End of Part 2
