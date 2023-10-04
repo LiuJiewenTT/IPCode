@@ -5,6 +5,8 @@
 */
 :root {
     --mcolor-dark-red: #860000;
+    --mcolor-dark-white: #dddddd;
+    font-size: 16px;
 }
 
 .status_icon_span {
@@ -15,6 +17,10 @@
 }
 
 .Badge_Newest {
+    --badge-max-heigh: 0.8rem;
+    --badge-font-size: 0.7rem;
     background: var(--mcolor-dark-red);
-    color: white;
+    color: var(--mcolor-dark-white);
+    font-size: var(--badge-font-size);
+    padding: calc(var(--badge-max-heigh) - var(--badge-font-size));
 }
