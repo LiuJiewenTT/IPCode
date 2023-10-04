@@ -160,9 +160,10 @@ function checkNewestStatus_ItemProcess_ProcessWithPattern(item, strdict){
     let badge_newest
     let info
     // get items part
+    let i=0    // 共享index，顺序获取item。计数器不能共享。代码与顺序强关联。
     {
         // get status_icon_item
-        for (let i=0,j=0, localName_index = 1; i<childNodes.length && j < localName_index; ++i){
+        for (let j=0,localName_index = 1; i<childNodes.length && j < localName_index; ++i){
             if( childNodes[i].localName === "span" ){
                 ++j;
                 if( j === localName_index ){
@@ -174,7 +175,7 @@ function checkNewestStatus_ItemProcess_ProcessWithPattern(item, strdict){
     }
     {
         // get code_item
-        for (let i=0,j=0, localName_index = 1; i<childNodes.length && j < localName_index; ++i){
+        for (let j=0,localName_index = 1; i<childNodes.length && j < localName_index; ++i){
             if( childNodes[i].localName === "code" ){
                 ++j;
                 if( j === localName_index ){
@@ -190,7 +191,7 @@ function checkNewestStatus_ItemProcess_ProcessWithPattern(item, strdict){
     }
     {
         // get badge_newest
-        for (let i=0,j=0, localName_index = 2; i<childNodes.length && j < localName_index; ++i){
+        for (let j=0,localName_index = 1; i<childNodes.length && j < localName_index; ++i){
             if( childNodes[i].localName === "span" ){
                 ++j;
                 if( j === localName_index ){
