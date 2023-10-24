@@ -82,6 +82,7 @@ def entrance():
 
 
 app.mount("/static", StaticFiles(directory="res"), name="res")
+app.mount("/", StaticFiles(directory="res-global"), name="res-global")
 
 
 def test_main():

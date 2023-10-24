@@ -1,0 +1,2 @@
+"为 favicon.ico <<===>> ..\..\..\..\keep_local\editing\icons\edition3\ico\IPCode-editing-3-hollow.ico 创建了硬链接"
+"为 favicon.png <<===>> ..\..\..\..\keep_local\editing\icons\edition3\IPCode-editing-3-hollow.png 创建了硬链接"
